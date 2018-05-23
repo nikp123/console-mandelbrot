@@ -113,10 +113,7 @@ int main(int argc, char *argv[]) {
 		double ci = mapToImag(y, winH, -1.0/zoom+posY, 1.0/zoom+posY);
 		double cr = mapToReal(x, winW, -2.0/zoom+posX, 1.0/zoom+posX);
 		int n = mandelbrotCalc(cr, ci, steps);
-
-		for(int i = 1; i < (int)sqrt(log(steps)/log(2)); i++){
-		}
-		
+	
 		if(n!=steps) {
 			puts(colors[(int)(log(n)/log(2))%7]);
 			putchar('#');
