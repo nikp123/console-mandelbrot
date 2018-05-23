@@ -6,6 +6,8 @@
 	#include <sys/ioctl.h>
 	#include <unistd.h>
 	#include <stdlib.h>
+
+	char *colors[] = {"\x1B[31m", "\x1B[33m","\x1B[32m","\x1B[36m","\x1B[34m","\x1B[35m","\x1B[37m","\x1B[0m"};
 	
 	static struct termios oldt,newt;
 	
@@ -99,7 +101,7 @@ double mapToImag(int x, int resx, double mini, double maxi) {
 }
 
 int main(int argc, char *argv[]) {
-	int winW, winH, steps = 128;
+	int winW, winH, steps = 512;
 	double zoom = 1.0f, posX = 0.0f, posY = 0.0f;
 	getConsoleSize(&winW, &winH);
 	setupConsole();
@@ -112,14 +114,13 @@ int main(int argc, char *argv[]) {
 		double cr = mapToReal(x, winW, -2.0/zoom+posX, 1.0/zoom+posX);
 		int n = mandelbrotCalc(cr, ci, steps);
 
-		if(n<=4) {
+		for(int i = 1; i < (int)sqrt(log(steps)/log(2)); i++){
+		}
+		
+		if(n!=steps) {
+			puts(colors[(int)(log(n)/log(2))%7]);
 			putchar('#');
-		} else if(n < (int)(0.125*steps)) {
-			putchar('0');
-		} else if(n < (int)(0.25*steps)) {
-			putchar('*');
-		} else if(n < (int)(0.5*steps)) {
-			putchar('.');
+			puts(colors[7]);
 		} else putchar(' ');
 	} 	
 	putchar('\n');
