@@ -7,7 +7,21 @@
 	#include <unistd.h>
 	#include <stdlib.h>
 
-	char *colors[] = {"\x1B[31m", "\x1B[33m","\x1B[32m","\x1B[36m","\x1B[34m","\x1B[35m","\x1B[37m","\x1B[0m"};
+	char *colors[] = {"\x1B[31m\x1B[41m",
+			"\x1B[33m\x1B[41m", "\x1B[31m\x1B[43m",
+			"\x1B[33m\x1B[43m",
+			"\x1B[32m\x1B[43m","\x1B[33m\x1B[42m",
+			"\x1B[32m\x1B[42m",
+			"\x1B[36m\x1B[42m","\x1B[32m\x1B[46m",
+			"\x1B[36m\x1B[46m",
+			"\x1B[34m\x1B[46m","\x1B[36m\x1B[44m",
+			"\x1B[34m\x1B[44m",
+			"\x1B[35m\x1B[44m","\x1B[34m\x1B[45m",
+			"\x1B[35m\x1B[45m",
+			"\x1B[37m\x1B[45m","\x1B[35m\x1B[47m",
+			"\x1B[37m\x1B[47m",
+			"\x1B[31m\x1B[47m","\x1B[37m\x1B[41m",
+			"\x1B[0m"};
 	
 	static struct termios oldt,newt;
 	
@@ -107,19 +121,20 @@ int main(int argc, char *argv[]) {
 	setupConsole();
 
 	do{
-	clearScrn();
-	for(int y = 0; y < winH; y++) {
-	putchar('\n');
-	for(int x = 0; x < winW; x++) {
-		double ci = mapToImag(y, winH, -1.0/zoom+posY, 1.0/zoom+posY);
-		double cr = mapToReal(x, winW, -2.0/zoom+posX, 1.0/zoom+posX);
-		int n = mandelbrotCalc(cr, ci, steps);
-	
-		if(n!=steps) {
-			printf("%s#%s",colors[(int)(log(n)/log(2))%7], colors[7]);
-		} else putchar(' ');
-	} 	
-	}
+		fflush(stdin);
+		clearScrn();
+		for(int y = 0; y < winH; y++) {
+			putchar('\n');
+			for(int x = 0; x < winW; x++) {
+				double ci = mapToImag(y, winH, -1.0/zoom+posY, 1.0/zoom+posY);
+				double cr = mapToReal(x, winW, -2.0/zoom+posX, 1.0/zoom+posX);
+				int n = mandelbrotCalc(cr, ci, steps);
+			
+				if(n!=steps) {
+					printf("%s=%s", colors[n%21], colors[21]);
+				} else putchar(' ');
+			} 	
+		}
 	} while(handleInput(&zoom, &posX, &posY, &steps));	
 	restoreConsole();
 	return 0;
