@@ -115,9 +115,7 @@ int main(int argc, char *argv[]) {
 		int n = mandelbrotCalc(cr, ci, steps);
 	
 		if(n!=steps) {
-			puts(colors[(int)(log(n)/log(2))%7]);
-			putchar('#');
-			puts(colors[7]);
+			printf("%s#%s",colors[(int)(log(n)/log(2))%7], colors[7]);
 		} else putchar(' ');
 	} 	
 	putchar('\n');
