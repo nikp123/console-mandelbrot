@@ -20,8 +20,8 @@
 	void setupConsole(void){
 		tcgetattr(STDIN_FILENO, &oldt);
 		newt = oldt;
-		newt.c_lflag &= ~(ICANON);
-		tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+		newt.c_lflag &= ~(ICANON | ECHO);
+    	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 	}
 	void restoreConsole(void){
 		tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
@@ -109,6 +109,7 @@ int main(int argc, char *argv[]) {
 	do{
 	clearScrn();
 	for(int y = 0; y < winH; y++) {
+	putchar('\n');
 	for(int x = 0; x < winW; x++) {
 		double ci = mapToImag(y, winH, -1.0/zoom+posY, 1.0/zoom+posY);
 		double cr = mapToReal(x, winW, -2.0/zoom+posX, 1.0/zoom+posX);
@@ -118,7 +119,6 @@ int main(int argc, char *argv[]) {
 			printf("%s#%s",colors[(int)(log(n)/log(2))%7], colors[7]);
 		} else putchar(' ');
 	} 	
-	putchar('\n');
 	}
 	} while(handleInput(&zoom, &posX, &posY, &steps));	
 	restoreConsole();
