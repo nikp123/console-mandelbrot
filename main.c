@@ -40,7 +40,7 @@
 	void restoreConsole(void){
 		tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 	}
-	int handleInput(double *zoom, double *posX, double *posY, int *iter){
+	int handleInput(long double *zoom, long double *posX, long double *posY, int *iter){
 		char c;
 		while((c = getchar()) != 'q'){
 			switch(c){
@@ -77,6 +77,13 @@
 					if(*iter==4) break;
 					*iter /= 2;
 					break;
+				case 'p':
+					// get position
+					restoreConsole();
+					system("clear");
+					printf("%llf %llf\n", *posX, *posY);
+					exit(EXIT_SUCCESS);
+					break;
 			}
 			return 1;
 		}
@@ -84,18 +91,19 @@
 	}
 	
 	void clearScrn(void){
-		system("clear");
+		//system("clear");
+		printf("\33[0;0H");
 	}
 #else
 	#error "Not supported!"
 #endif
 
-int mandelbrotCalc(double cr, double ci, int steps) {
+int mandelbrotCalc(long double cr, long double ci, int steps) {
 	int i = 0;
 
-	double zi = 0.0f, zr = 0.0f;
+	long double zi = 0.0f, zr = 0.0f;
 	while(i < steps && zr*zr+zi*zi<4.0) {
-		double temp = zr*zr-zi*zi+cr;
+		long double temp = zr*zr-zi*zi+cr;
 		zi = zr * 2.0 * zi + ci;
 		zr = temp;
 		i++;
@@ -104,21 +112,26 @@ int mandelbrotCalc(double cr, double ci, int steps) {
 	return i;
 }
 
-double mapToReal(int x, int resx, double minr, double maxr) {
+long double mapToReal(int x, int resx, long double minr, long double maxr) {
 	double range = maxr-minr;
 	return x*(range/resx)+minr;
 }
 
-double mapToImag(int x, int resx, double mini, double maxi) {
+long double mapToImag(int x, int resx, long double mini, long double maxi) {
 	double range = maxi-mini;
 	return x*(range/resx)+mini;
 }
 
 int main(int argc, char *argv[]) {
 	int winW, winH, steps = 512;
-	double zoom = 1.0f, posX = 0.0f, posY = 0.0f;
+	long double zoom = 1.0f, posX = 0.0f, posY = 0.0f;
 	getConsoleSize(&winW, &winH);
 	setupConsole();
+
+	if(argc == 3){
+		sscanf(argv[1], "%llf", &posX);
+		sscanf(argv[2], "%llf", &posY);
+	}
 
 	do{
 		fflush(stdin);
@@ -126,8 +139,8 @@ int main(int argc, char *argv[]) {
 		for(int y = 0; y < winH; y++) {
 			putchar('\n');
 			for(int x = 0; x < winW; x++) {
-				double ci = mapToImag(y, winH, -1.0/zoom+posY, 1.0/zoom+posY);
-				double cr = mapToReal(x, winW, -2.0/zoom+posX, 1.0/zoom+posX);
+				long double ci = mapToImag(y, winH, -1.0/zoom+posY, 1.0/zoom+posY);
+				long double cr = mapToReal(x, winW, -2.0/zoom+posX, 1.0/zoom+posX);
 				int n = mandelbrotCalc(cr, ci, steps);
 			
 				if(n!=steps) {
