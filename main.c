@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <math.h>
 
+static int winW, winH;
+
 #ifdef __unix__
 	#include <termios.h>
 	#include <sys/ioctl.h>
 	#include <unistd.h>
 	#include <stdlib.h>
+	#include <signal.h>
 
 	char *colors[] = {"\x1B[31m\x1B[41m",
 			"\x1B[33m\x1B[41m", "\x1B[31m\x1B[43m",
@@ -22,20 +25,32 @@
 			"\x1B[37m\x1B[47m",
 			"\x1B[31m\x1B[47m","\x1B[37m\x1B[41m",
 			"\x1B[0m"};
-	
+
 	static struct termios oldt,newt;
-	
-	void getConsoleSize(int *x, int *y) {
+
+	void getConsoleSize() {
 		struct winsize w;
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-		*y = w.ws_row;
-		*x = w.ws_col;
+		winH = w.ws_row;
+		winW = w.ws_col;
 	}
+
+	void sigwinchhandler(int signo) {
+		if(signo == SIGWINCH) getConsoleSize();
+	}
+
 	void setupConsole(void){
 		tcgetattr(STDIN_FILENO, &oldt);
 		newt = oldt;
 		newt.c_lflag &= ~(ICANON | ECHO);
-    	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+		tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+		setvbuf(stdin, NULL, _IONBF, 1);
+		
+		struct sigaction sa, priorsa;
+		sigemptyset(&sa.sa_mask);
+		sa.sa_flags = 0;
+		sa.sa_handler = sigwinchhandler;
+		sigaction(SIGWINCH, &sa, &priorsa);
 	}
 	void restoreConsole(void){
 		tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
@@ -123,9 +138,9 @@ long double mapToImag(int x, int resx, long double mini, long double maxi) {
 }
 
 int main(int argc, char *argv[]) {
-	int winW, winH, steps = 512;
+	int steps = 512;
 	long double zoom = 1.0f, posX = 0.0f, posY = 0.0f;
-	getConsoleSize(&winW, &winH);
+	getConsoleSize();
 	setupConsole();
 
 	if(argc == 3){
@@ -136,8 +151,7 @@ int main(int argc, char *argv[]) {
 	do{
 		fflush(stdin);
 		clearScrn();
-		for(int y = 0; y < winH; y++) {
-			putchar('\n');
+		for(int y = 0; y < winH-1; y++) { // subtract the future status bar
 			for(int x = 0; x < winW; x++) {
 				long double ci = mapToImag(y, winH, -1.0/zoom+posY, 1.0/zoom+posY);
 				long double cr = mapToReal(x, winW, -2.0/zoom+posX, 1.0/zoom+posX);
@@ -146,7 +160,8 @@ int main(int argc, char *argv[]) {
 				if(n!=steps) {
 					printf("%s=%s", colors[n%21], colors[21]);
 				} else putchar(' ');
-			} 	
+			}
+			putchar('\n');
 		}
 	} while(handleInput(&zoom, &posX, &posY, &steps));	
 	restoreConsole();
